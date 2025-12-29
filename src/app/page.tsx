@@ -1,5 +1,6 @@
-import { redirect } from 'next/navigation';
+// src/app/page.tsx
+"use client";
 
 export default function Home() {
-  redirect('/converters/image');
+  return null;
 }
