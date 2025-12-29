@@ -9,11 +9,13 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
   Image as ImageIcon,
   FileText,
   Info,
+  MessageSquareWarning,
 } from "lucide-react";
 
 const navItems = [
@@ -21,6 +23,10 @@ const navItems = [
   { href: "/converters/pdf", label: "PDF Converter", icon: FileText },
   { href: "/about", label: "About", icon: Info },
 ];
+
+const footerNavItems = [
+    { href: "/report", label: "Report a Problem", icon: MessageSquareWarning },
+]
 
 export function SidebarNav() {
   const pathname = usePathname();
@@ -60,6 +66,24 @@ export function SidebarNav() {
           ))}
         </SidebarMenu>
       </SidebarContent>
+       <SidebarFooter>
+        <SidebarMenu>
+          {footerNavItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith(item.href)}
+                tooltip={{ children: item.label }}
+              >
+                <Link href={item.href}>
+                  <item.icon />
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

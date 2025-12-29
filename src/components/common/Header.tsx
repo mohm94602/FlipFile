@@ -17,6 +17,7 @@ const getPageTitle = (path: string) => {
 
     switch (`/${pathSegments[0]}`) {
         case '/about': return 'About FileFlex';
+        case '/report': return 'Report a Problem';
         default: return 'FileFlex';
     }
 }
