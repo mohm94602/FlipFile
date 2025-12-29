@@ -14,6 +14,7 @@ import {
   Image as ImageIcon,
   FileText,
   Info,
+  LifeBuoy,
 } from "lucide-react";
 import { AdsenseAd } from "./AdsenseAd";
 import { Card } from "../ui/card";
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/converters/image", label: "Image Converter", icon: ImageIcon },
   { href: "/converters/pdf", label: "PDF Converter", icon: FileText },
   { href: "/about", label: "About", icon: Info },
+  { href: "/report", label: "Report a Problem", icon: LifeBuoy },
 ];
 
 export function SidebarNav() {
