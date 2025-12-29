@@ -2,9 +2,9 @@ import nodemailer from 'nodemailer';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const { email, subject, message } = await req.json();
+  const { subject, message } = await req.json();
 
-  if (!email || !subject || !message) {
+  if (!subject || !message) {
     return NextResponse.json({ error: 'Please fill all fields' }, { status: 400 });
   }
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     from: 'mohmum555@gmail.com',
     to: 'support@flipfile.com',
     subject: `[FlipFile] ${subject}`,
-    text: `Email: ${email}\n\n${message}`
+    text: message
   };
 
   try {

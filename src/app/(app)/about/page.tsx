@@ -16,9 +16,9 @@ export default function AboutPage() {
   return (
     <div className="container mx-auto max-w-4xl py-8">
       <div className="space-y-8 text-center">
-        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl">About FileFlex</h1>
+        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl">About FlipFile</h1>
         <p className="text-xl text-muted-foreground">
-          Your all-in-one solution for seamless file conversions. We built FileFlex to be fast, private, and incredibly easy to use.
+          Your all-in-one solution for seamless file conversions. We built FlipFile to be fast, private, and incredibly easy to use.
         </p>
       </div>
 
@@ -41,7 +41,7 @@ export default function AboutPage() {
       <div className="mt-12 text-center">
         <h2 className="text-3xl font-bold">Our Mission</h2>
         <p className="mt-4 text-lg text-muted-foreground">
-          To provide a powerful, reliable, and user-friendly file conversion platform that respects your privacy. Whether you're a student, a professional, or just someone needing a quick conversion, FileFlex is here to help you get the job done without any hassle.
+          To provide a powerful, reliable, and user-friendly file conversion platform that respects your privacy. Whether you're a student, a professional, or just someone needing a quick conversion, FlipFile is here to help you get the job done without any hassle.
         </p>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { ThemeProvider } from '@/components/common/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'FileFlex - Convert Your Files Easily!',
+  title: 'FlipFile - Convert Your Files Easily!',
   description: 'PDF, Image, Video, Audio – convert everything in seconds.',
 };
 

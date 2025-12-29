@@ -11,9 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const formSchema = z.object({
-  email: z.string().email("Please enter a valid email address."),
   subject: z.string().min(5, "Subject must be at least 5 characters."),
   message: z.string().min(10, "Message must be at least 10 characters."),
 });
@@ -21,11 +21,11 @@ const formSchema = z.object({
 export default function ReportProblemPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
       subject: "",
       message: "",
     },
@@ -33,6 +33,7 @@ export default function ReportProblemPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+    setFormStatus(null);
     try {
       const response = await fetch('/api/report', {
         method: 'POST',
@@ -45,20 +46,13 @@ export default function ReportProblemPage() {
       const result = await response.json();
 
       if (response.ok) {
-        toast({
-          title: "Report Sent!",
-          description: "Thanks for your feedback. We'll look into it shortly.",
-        });
+        setFormStatus({ type: 'success', message: result.message || 'Report sent successfully!' });
         form.reset();
       } else {
         throw new Error(result.error || "Something went wrong.");
       }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Submission Failed",
-        description: error.message || "Could not send your report. Please try again later.",
-      });
+      setFormStatus({ type: 'error', message: error.message || 'Could not send your report. Please try again later.' });
     } finally {
       setIsLoading(false);
     }
@@ -76,19 +70,6 @@ export default function ReportProblemPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-6">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Your Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="you@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="subject"
@@ -129,6 +110,15 @@ export default function ReportProblemPage() {
           </form>
         </Form>
       </Card>
+      
+      {formStatus && (
+        <Alert className="mt-6" variant={formStatus.type === 'error' ? 'destructive' : 'default'}>
+          <AlertTitle>{formStatus.type === 'success' ? 'Success!' : 'Error'}</AlertTitle>
+          <AlertDescription>
+            {formStatus.message}
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }

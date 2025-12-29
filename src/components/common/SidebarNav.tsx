@@ -45,7 +45,7 @@ export function SidebarNav() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-primary text-primary-foreground">
                 <Logo />
             </div>
-            <span className="font-bold text-lg group-data-[collapsible=icon]:hidden">FileFlex</span>
+            <span className="font-bold text-lg group-data-[collapsible=icon]:hidden">FlipFile</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
