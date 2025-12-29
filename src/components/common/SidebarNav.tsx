@@ -14,9 +14,7 @@ import {
 import {
   Image as ImageIcon,
   FileText,
-  Bot,
   Info,
-  Mail,
   LifeBuoy,
   UserCircle,
 } from "lucide-react";
@@ -24,9 +22,7 @@ import {
 const navItems = [
   { href: "/converters/image", label: "Image Converter", icon: ImageIcon },
   { href: "/converters/pdf", label: "PDF Converter", icon: FileText },
-  { href: "/ai-suggester", label: "AI Suggester", icon: Bot },
   { href: "/about", label: "About", icon: Info },
-  { href: "/contact", label: "Contact", icon: Mail },
 ];
 
 export function SidebarNav() {
