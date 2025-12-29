@@ -2,6 +2,7 @@ import { converterTools } from '@/lib/converter-options';
 import type { ConverterType } from '@/lib/types';
 import { ConverterWrapper } from '@/components/converters/ConverterWrapper';
 import { notFound } from 'next/navigation';
+import { AdsenseAd } from '@/components/common/AdsenseAd';
 
 export const dynamic = 'force-static';
 export const dynamicParams = true;
@@ -37,6 +38,9 @@ export default function ConverterPage({ params }: { params: { type: ConverterTyp
               {description}
             </p>
         </div>
+
+        <AdsenseAd adSlot="YYYYYYYYYY" />
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {tools.map((tool) => (
           <ConverterWrapper 

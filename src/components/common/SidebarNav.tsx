@@ -17,6 +17,8 @@ import {
   Info,
   MessageSquareWarning,
 } from "lucide-react";
+import { AdsenseAd } from "./AdsenseAd";
+import { Card } from "../ui/card";
 
 const navItems = [
   { href: "/converters/image", label: "Image Converter", icon: ImageIcon },
@@ -65,6 +67,11 @@ export function SidebarNav() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
+        <div className="mt-auto p-2 group-data-[collapsible=icon]:hidden">
+            <Card className="overflow-hidden">
+                <AdsenseAd adSlot="YYYYYYYYYY" />
+            </Card>
+        </div>
       </SidebarContent>
        <SidebarFooter>
         <SidebarMenu>
