@@ -9,14 +9,11 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
   Image as ImageIcon,
   FileText,
   Info,
-  LifeBuoy,
-  UserCircle,
 } from "lucide-react";
 
 const navItems = [
@@ -63,22 +60,6 @@ export function SidebarNav() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-            <SidebarMenuItem>
-                 <SidebarMenuButton tooltip={{ children: 'Support' }}>
-                    <LifeBuoy />
-                    <span>Support</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                 <SidebarMenuButton tooltip={{ children: 'Account' }}>
-                    <UserCircle />
-                    <span>Account</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }
