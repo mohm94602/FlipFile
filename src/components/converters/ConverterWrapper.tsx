@@ -5,13 +5,15 @@ import { FileDropzone } from "@/components/upload/FileDropzone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Download, CheckCircle, Loader2 } from "lucide-react";
+import { Download, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { ConverterTool, ConverterToolOption } from "@/lib/types";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Slider } from "../ui/slider";
 import { Switch } from "../ui/switch";
+import { convertImage } from "@/app/actions/convert";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 interface ConverterWrapperProps {
   tool: ConverterTool;
@@ -23,6 +25,10 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
   const [isConverting, setIsConverting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isDone, setIsDone] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [downloadFilename, setDownloadFilename] = useState<string>('');
+  const [conversionError, setConversionError] = useState<string | null>(null);
+
   const [options, setOptions] = useState<Record<string, any>>(() => {
     const defaultOptions: Record<string, any> = {};
     tool.options.forEach(opt => {
@@ -37,7 +43,7 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
     setOptions(prev => ({ ...prev, [id]: value }));
   };
 
-  const handleConvert = () => {
+  const handleConvert = async () => {
     if (files.length === 0) {
       toast({
         title: "No file selected",
@@ -50,26 +56,76 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
     setIsConverting(true);
     setIsDone(false);
     setProgress(0);
+    setConversionError(null);
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 95) {
-          return prev;
+    const isImageConverter = tool.name.toLowerCase().includes('image');
+
+    if (isImageConverter) {
+        const formData = new FormData();
+        formData.append('file', files[0]);
+        Object.entries(options).forEach(([key, value]) => {
+            formData.append(key, String(value));
+        });
+
+        // Simulate progress for server action
+        const progressInterval = setInterval(() => {
+            setProgress(p => Math.min(p + 10, 90));
+        }, 200);
+
+        const result = await convertImage(formData);
+        clearInterval(progressInterval);
+        setProgress(100);
+
+        if ('error' in result) {
+            setConversionError(result.error);
+            toast({
+                title: 'Conversion Failed',
+                description: result.error,
+                variant: 'destructive',
+            });
+        } else {
+            setDownloadUrl(result.dataUrl);
+            const originalName = result.originalName.substring(0, result.originalName.lastIndexOf('.'));
+            const targetFormat = options.format || 'jpg';
+            setDownloadFilename(`${originalName}.${targetFormat}`);
+            setIsDone(true);
+            toast({
+                title: "Conversion Successful!",
+                description: "Your file is ready for download.",
+            });
         }
-        return prev + Math.floor(Math.random() * 10) + 5;
-      });
-    }, 200);
+        setIsConverting(false);
 
-    setTimeout(() => {
-      clearInterval(interval);
-      setProgress(100);
-      setIsConverting(false);
-      setIsDone(true);
-      toast({
-        title: "Conversion Successful!",
-        description: "Your file is ready for download.",
-      });
-    }, 4000);
+    } else {
+      // Mock conversion for other types
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 95) {
+            return prev;
+          }
+          return prev + Math.floor(Math.random() * 10) + 5;
+        });
+      }, 200);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        setProgress(100);
+        setIsConverting(false);
+        setIsDone(true);
+        // This is a mock download.
+        const mockFile = new Blob(["This is a mock converted file."], { type: "text/plain" });
+        const url = URL.createObjectURL(mockFile);
+        setDownloadUrl(url);
+        const originalName = files[0]?.name.split('.')[0] || 'file';
+        const targetFormat = options.format || 'txt';
+        setDownloadFilename(`converted_${originalName}.${targetFormat}`);
+        
+        toast({
+          title: "Conversion Successful!",
+          description: "Your file is ready for download.",
+        });
+      }, 2000);
+    }
   };
 
   const handleReset = () => {
@@ -77,19 +133,25 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
     setIsConverting(false);
     setProgress(0);
     setIsDone(false);
+    setDownloadUrl(null);
+    setDownloadFilename('');
+    setConversionError(null);
   };
   
   const handleDownload = () => {
-    // This is a mock download.
-    const mockFile = new Blob(["This is a mock converted file."], { type: "text/plain" });
-    const url = URL.createObjectURL(mockFile);
+    if (!downloadUrl) return;
+
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `converted_${files[0]?.name.split('.')[0] || 'file'}.txt`;
+    a.href = downloadUrl;
+    a.download = downloadFilename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    
+    // For blob URLs, we should revoke them after download
+    if (downloadUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(downloadUrl);
+    }
   }
 
   const renderOption = (option: ConverterToolOption) => {
@@ -144,6 +206,10 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
         return null;
     }
   };
+  
+  const acceptedFormats = tool.name.toLowerCase().includes('image')
+  ? { 'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp', '.webp', '.svg'] }
+  : undefined;
 
   return (
     <Card className="flex h-full w-full flex-col shadow-lg transition-all duration-300 hover:shadow-xl">
@@ -152,7 +218,7 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
         <CardDescription>{tool.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 space-y-6">
-        {!isDone && <FileDropzone files={files} setFiles={setFiles} maxFiles={maxFiles} disabled={isConverting} />}
+        {!isDone && <FileDropzone files={files} setFiles={setFiles} maxFiles={maxFiles} disabled={isConverting} accept={acceptedFormats} />}
         
         {tool.options.length > 0 && files.length > 0 && !isDone && (
             <div className="space-y-4 rounded-md border p-4">
@@ -168,15 +234,25 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
             </div>
         )}
 
-        {isConverting && (
+        {(isConverting || (isDone && !conversionError)) && (
           <div className="space-y-2 text-center">
-            <p className="text-sm font-medium">Converting...</p>
+            <p className="text-sm font-medium">{isDone ? 'Done!' : 'Converting...'}</p>
             <Progress value={progress} />
             <p className="text-xs text-muted-foreground">{progress}% complete</p>
           </div>
         )}
+        
+        {conversionError && !isConverting && (
+             <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Conversion Error</AlertTitle>
+                <AlertDescription>
+                    {conversionError}
+                </AlertDescription>
+            </Alert>
+        )}
 
-        {isDone && (
+        {isDone && downloadUrl && (
           <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-green-500/30 bg-green-500/5 p-8 text-center text-green-500">
             <CheckCircle className="size-12" />
             <p className="font-semibold">Conversion Complete!</p>
@@ -191,7 +267,7 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
         )}
       </CardContent>
       <CardFooter className="mt-auto">
-          {!isDone && (
+          {(!isDone && !conversionError) || (conversionError && (
             <Button onClick={handleConvert} disabled={files.length === 0 || isConverting} className="w-full">
               {isConverting ? (
                 <>
@@ -202,7 +278,12 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
                 'Convert Now'
               )}
             </Button>
-          )}
+          )) }
+           {conversionError && (
+             <Button onClick={handleReset} className="w-full">
+                Try Again
+             </Button>
+           )}
       </CardFooter>
     </Card>
   );
