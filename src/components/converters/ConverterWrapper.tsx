@@ -234,9 +234,9 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
             </div>
         )}
 
-        {(isConverting || (isDone && !conversionError)) && (
+        {isConverting && (
           <div className="space-y-2 text-center">
-            <p className="text-sm font-medium">{isDone ? 'Done!' : 'Converting...'}</p>
+            <p className="text-sm font-medium">Converting...</p>
             <Progress value={progress} />
             <p className="text-xs text-muted-foreground">{progress}% complete</p>
           </div>
@@ -252,7 +252,7 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
             </Alert>
         )}
 
-        {isDone && downloadUrl && (
+        {isDone && !conversionError && downloadUrl && (
           <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-green-500/30 bg-green-500/5 p-8 text-center text-green-500">
             <CheckCircle className="size-12" />
             <p className="font-semibold">Conversion Complete!</p>
@@ -267,7 +267,7 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
         )}
       </CardContent>
       <CardFooter className="mt-auto">
-          {(!isDone && !conversionError) || (conversionError && (
+          {!isDone && !conversionError && (
             <Button onClick={handleConvert} disabled={files.length === 0 || isConverting} className="w-full">
               {isConverting ? (
                 <>
@@ -278,10 +278,10 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
                 'Convert Now'
               )}
             </Button>
-          )) }
-           {conversionError && (
+          )}
+           {(isDone || conversionError) && (
              <Button onClick={handleReset} className="w-full">
-                Try Again
+                {conversionError ? 'Try Again' : 'Convert Another File'}
              </Button>
            )}
       </CardFooter>
