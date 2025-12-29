@@ -13,8 +13,6 @@ export function generateStaticParams() {
 function getPageInfo(type: ConverterType) {
     switch (type) {
         case 'image': return { title: 'Image Converter', description: 'Convert, resize, and compress your images with ease.' };
-        case 'video': return { title: 'Video Converter', description: 'Powerful video conversion tools at your fingertips.' };
-        case 'audio': return { title: 'Audio Converter', description: 'Modify your audio files in just a few clicks.' };
         case 'pdf': return { title: 'PDF Converter', description: 'All the PDF tools you need in one place.' };
         default: return { title: 'Converter', description: 'Select a tool to get started.' };
     }

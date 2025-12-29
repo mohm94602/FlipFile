@@ -26,45 +26,6 @@ export const converterTools: ConverterTools = {
       ],
     },
   ],
-  video: [
-    {
-      name: 'Convert Video',
-      description: 'Change video format to MP4, MOV, AVI, or MKV.',
-      options: [
-        { id: 'format', label: 'Convert to', type: 'select', defaultValue: 'mp4', items: [{ value: 'mp4', label: 'MP4' }, { value: 'mov', label: 'MOV' }, { value: 'avi', label: 'AVI' }, { value: 'mkv', label: 'MKV' }] },
-      ],
-    },
-    {
-      name: 'Compress Video',
-      description: 'Reduce the file size of your video.',
-      options: [
-        { id: 'crf', label: 'Quality (lower is better)', type: 'slider', defaultValue: 23, min: 18, max: 28, step: 1 },
-      ],
-    },
-    {
-      name: 'Extract Audio',
-      description: 'Extract audio from video to an MP3 file.',
-      options: [
-        { id: 'extract', label: 'Extract Audio', type: 'switch', defaultValue: false },
-      ],
-    },
-  ],
-  audio: [
-    {
-      name: 'Convert Audio',
-      description: 'Change audio format to MP3, WAV, AAC, or OGG.',
-      options: [
-        { id: 'format', label: 'Convert to', type: 'select', defaultValue: 'mp3', items: [{ value: 'mp3', label: 'MP3' }, { value: 'wav', label: 'WAV' }, { value: 'aac', label: 'AAC' }, { value: 'ogg', label: 'OGG' }] },
-      ],
-    },
-    {
-      name: 'Change Bitrate',
-      description: 'Adjust the bitrate of your audio file.',
-      options: [
-        { id: 'bitrate', label: 'Bitrate (kbps)', type: 'select', defaultValue: '192', items: [{ value: '128', label: '128 kbps' }, { value: '192', label: '192 kbps' }, { value: '256', label: '256 kbps' }, { value: '320', label: '320 kbps' }] },
-      ],
-    },
-  ],
   pdf: [
     {
       name: 'PDF to Word',

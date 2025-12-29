@@ -13,8 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Slider } from "../ui/slider";
 import { Switch } from "../ui/switch";
 import { convertImage } from "@/app/actions/convert";
-import { convertVideo } from "@/app/actions/video";
-import { convertAudio } from "@/app/actions/audio";
 import { convertPdfToJpg, convertPdfToWord, mergePdf, splitPdf } from "@/app/actions/pdf";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
@@ -77,10 +75,6 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
     try {
         if (toolName.includes('image')) {
             result = await convertImage(formData);
-        } else if (toolName.includes('video') || toolName.includes('extract audio')) {
-            result = await convertVideo(formData);
-        } else if (toolName.includes('audio') || toolName.includes('bitrate')) {
-            result = await convertAudio(formData);
         } else if (toolName.includes('pdf to word')) {
             result = await convertPdfToWord(formData);
         } else if (toolName.includes('pdf to jpg')) {
@@ -208,8 +202,6 @@ a.click();
   const toolName = tool.name.toLowerCase();
   let acceptedFormats: Record<string, string[]> | undefined;
   if (toolName.includes('image')) acceptedFormats = { 'image/*': [] };
-  if (toolName.includes('video') || toolName.includes('extract audio')) acceptedFormats = { 'video/*': [] };
-  if (toolName.includes('audio') || toolName.includes('bitrate')) acceptedFormats = { 'audio/*': [] };
   if (toolName.includes('pdf')) acceptedFormats = { 'application/pdf': ['.pdf'] };
 
   return (

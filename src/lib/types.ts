@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-export type ConverterType = 'image' | 'video' | 'audio' | 'pdf';
+export type ConverterType = 'image' | 'pdf';
 
 export type ConverterOption = {
   value: string;

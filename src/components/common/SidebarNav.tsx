@@ -13,8 +13,6 @@ import {
 } from "@/components/ui/sidebar";
 import {
   Image as ImageIcon,
-  Video,
-  FileAudio,
   FileText,
   Bot,
   Info,
@@ -25,8 +23,6 @@ import {
 
 const navItems = [
   { href: "/converters/image", label: "Image Converter", icon: ImageIcon },
-  { href: "/converters/video", label: "Video Converter", icon: Video },
-  { href: "/converters/audio", label: "Audio Converter", icon: FileAudio },
   { href: "/converters/pdf", label: "PDF Converter", icon: FileText },
   { href: "/ai-suggester", label: "AI Suggester", icon: Bot },
   { href: "/about", label: "About", icon: Info },

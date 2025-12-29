@@ -20,7 +20,7 @@ const formSchema = z.object({
   desiredQuality: z.string().min(1, "Please select a quality."),
 });
 
-const fileTypes = ["Image", "Video", "Audio", "Document"];
+const fileTypes = ["Image", "Document"];
 const qualityLevels = ["Best Quality", "Good Balance", "Smallest File Size"];
 
 export default function AISuggesterPage() {
