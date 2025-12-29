@@ -75,7 +75,7 @@ export default function AISuggesterPage() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a file type..." />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {fileTypes.map((type) => (
@@ -97,7 +97,7 @@ export default function AISuggesterPage() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a quality level..." />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {qualityLevels.map((level) => (
