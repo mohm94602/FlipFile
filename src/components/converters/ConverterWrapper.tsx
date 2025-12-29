@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FileDropzone } from "@/components/upload/FileDropzone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -13,6 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Slider } from "../ui/slider";
 import { Switch } from "../ui/switch";
 import { convertImage } from "@/app/actions/convert";
+import { convertVideo } from "@/app/actions/video";
+import { convertAudio } from "@/app/actions/audio";
+import { convertPdfToJpg, convertPdfToWord, mergePdf, splitPdf } from "@/app/actions/pdf";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 interface ConverterWrapperProps {
@@ -58,74 +61,70 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
     setProgress(0);
     setConversionError(null);
 
-    const isImageConverter = tool.name.toLowerCase().includes('image');
+    const progressInterval = setInterval(() => {
+        setProgress(p => Math.min(p + 10, 90));
+    }, 500);
 
-    if (isImageConverter) {
-        const formData = new FormData();
-        formData.append('file', files[0]);
-        Object.entries(options).forEach(([key, value]) => {
-            formData.append(key, String(value));
-        });
+    const formData = new FormData();
+    files.forEach(file => formData.append('file', file));
+    Object.entries(options).forEach(([key, value]) => {
+        formData.append(key, String(value));
+    });
 
-        // Simulate progress for server action
-        const progressInterval = setInterval(() => {
-            setProgress(p => Math.min(p + 10, 90));
-        }, 200);
+    let result: { dataUrl: string; originalName?: string; fileName?: string; } | { error: string } | undefined;
+    const toolName = tool.name.toLowerCase();
 
-        const result = await convertImage(formData);
-        clearInterval(progressInterval);
-        setProgress(100);
-
-        if ('error' in result) {
-            setConversionError(result.error);
-            toast({
-                title: 'Conversion Failed',
-                description: result.error,
-                variant: 'destructive',
-            });
-        } else {
-            setDownloadUrl(result.dataUrl);
-            const originalName = result.originalName.substring(0, result.originalName.lastIndexOf('.'));
-            const targetFormat = options.format || 'jpg';
-            setDownloadFilename(`${originalName}.${targetFormat}`);
-            setIsDone(true);
-            toast({
-                title: "Conversion Successful!",
-                description: "Your file is ready for download.",
-            });
+    try {
+        if (toolName.includes('image')) {
+            result = await convertImage(formData);
+        } else if (toolName.includes('video') || toolName.includes('extract audio')) {
+            result = await convertVideo(formData);
+        } else if (toolName.includes('audio') || toolName.includes('bitrate')) {
+            result = await convertAudio(formData);
+        } else if (toolName.includes('pdf to word')) {
+            result = await convertPdfToWord(formData);
+        } else if (toolName.includes('pdf to jpg')) {
+            result = await convertPdfToJpg(formData);
+        } else if (toolName.includes('merge pdf')) {
+            result = await mergePdf(formData);
+        } else if (toolName.includes('split pdf')) {
+            result = await splitPdf(formData);
         }
-        setIsConverting(false);
-
-    } else {
-      // Mock conversion for other types
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 95) {
-            return prev;
-          }
-          return prev + Math.floor(Math.random() * 10) + 5;
-        });
-      }, 200);
-
-      setTimeout(() => {
-        clearInterval(interval);
-        setProgress(100);
-        setIsConverting(false);
-        setIsDone(true);
-        // This is a mock download.
-        const mockFile = new Blob(["This is a mock converted file."], { type: "text/plain" });
-        const url = URL.createObjectURL(mockFile);
-        setDownloadUrl(url);
-        const originalName = files[0]?.name.split('.')[0] || 'file';
-        const targetFormat = options.format || 'txt';
-        setDownloadFilename(`converted_${originalName}.${targetFormat}`);
-        
-        toast({
-          title: "Conversion Successful!",
-          description: "Your file is ready for download.",
-        });
-      }, 2000);
+    } catch (e) {
+        console.error(e);
+        result = { error: "An unexpected error occurred." };
     }
+
+    clearInterval(progressInterval);
+    setProgress(100);
+
+    if (result && 'error' in result) {
+        setConversionError(result.error);
+        toast({
+            title: 'Conversion Failed',
+            description: result.error,
+            variant: 'destructive',
+        });
+    } else if (result && 'dataUrl' in result) {
+        setDownloadUrl(result.dataUrl);
+        const originalName = result.originalName || files[0].name;
+        const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
+        const targetFormat = options.format || tool.name.split(' ').pop()?.toLowerCase();
+        
+        let finalFilename = result.fileName || `${nameWithoutExt}.${targetFormat}`;
+        if (result.originalName) {
+            finalFilename = result.originalName;
+        }
+
+        setDownloadFilename(finalFilename);
+        setIsDone(true);
+        toast({
+            title: "Conversion Successful!",
+            description: "Your file is ready for download.",
+        });
+    }
+    
+    setIsConverting(false);
   };
 
   const handleReset = () => {
@@ -145,10 +144,9 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
     a.href = downloadUrl;
     a.download = downloadFilename;
     document.body.appendChild(a);
-    a.click();
+a.click();
     document.body.removeChild(a);
     
-    // For blob URLs, we should revoke them after download
     if (downloadUrl.startsWith('blob:')) {
         URL.revokeObjectURL(downloadUrl);
     }
@@ -207,9 +205,12 @@ export function ConverterWrapper({ tool, maxFiles = 1 }: ConverterWrapperProps) 
     }
   };
   
-  const acceptedFormats = tool.name.toLowerCase().includes('image')
-  ? { 'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp', '.webp', '.svg'] }
-  : undefined;
+  const toolName = tool.name.toLowerCase();
+  let acceptedFormats: Record<string, string[]> | undefined;
+  if (toolName.includes('image')) acceptedFormats = { 'image/*': [] };
+  if (toolName.includes('video') || toolName.includes('extract audio')) acceptedFormats = { 'video/*': [] };
+  if (toolName.includes('audio') || toolName.includes('bitrate')) acceptedFormats = { 'audio/*': [] };
+  if (toolName.includes('pdf')) acceptedFormats = { 'application/pdf': ['.pdf'] };
 
   return (
     <Card className="flex h-full w-full flex-col shadow-lg transition-all duration-300 hover:shadow-xl">

@@ -2,7 +2,6 @@
 
 import sharp from 'sharp';
 
-// Helper function to convert buffer to base64 data URL
 function bufferToDataURL(buffer: Buffer, mimeType: string): string {
   return `data:${mimeType};base64,${buffer.toString('base64')}`;
 }
@@ -11,23 +10,27 @@ export async function convertImage(
   formData: FormData
 ): Promise<{ dataUrl: string; originalName: string; } | { error: string }> {
   const file = formData.get('file') as File;
-  const targetFormat = (formData.get('format') as string) || 'jpeg';
+  const targetFormat = (formData.get('format') as string | null) || 'jpeg';
+  const quality = parseInt(formData.get('quality') as string, 10) || 80;
+  const width = parseInt(formData.get('width') as string, 10) || undefined;
+  const height = parseInt(formData.get('height') as string, 10) || undefined;
+  const keepAspectRatio = formData.get('keepAspectRatio') === 'true';
 
   if (!file) {
     return { error: 'No file provided.' };
   }
 
-  // List of formats supported by sharp for output
-  const supportedOutputFormats = ['jpeg', 'png', 'webp', 'gif', 'avif', 'tiff', 'svg'];
+  const supportedOutputFormats = ['jpeg', 'png', 'webp', 'gif', 'avif', 'tiff'];
+  let format = targetFormat.toLowerCase();
+  if (format === 'jpg') format = 'jpeg';
   
-  // Normalize format
-  const format = targetFormat.toLowerCase();
-  
-  if (format === 'jpg') {
-      // sharp uses 'jpeg'
-  }
-
-  if (!supportedOutputFormats.includes(format === 'jpg' ? 'jpeg' : format)) {
+  if (!supportedOutputFormats.includes(format)) {
+      if (targetFormat.toLowerCase() === 'svg' && file.type === 'image/svg+xml') {
+        // "Converting" SVG to SVG, just pass it through
+        const fileBuffer = Buffer.from(await file.arrayBuffer());
+        const dataUrl = bufferToDataURL(fileBuffer, 'image/svg+xml');
+        return { dataUrl, originalName: file.name };
+      }
       return { error: `Unsupported output format: ${targetFormat}` };
   }
   
@@ -36,50 +39,26 @@ export async function convertImage(
 
     let sharpInstance = sharp(fileBuffer);
 
-    // Get metadata to check if the input is a valid image
     try {
         await sharpInstance.metadata();
     } catch (e) {
         return { error: 'Invalid or unsupported input image format.' };
     }
 
-    let convertedBuffer: Buffer;
-    let mimeType: string;
-
-    switch (format) {
-      case 'jpg':
-      case 'jpeg':
-        convertedBuffer = await sharpInstance.jpeg({ quality: 80 }).toBuffer();
-        mimeType = 'image/jpeg';
-        break;
-      case 'png':
-        convertedBuffer = await sharpInstance.png().toBuffer();
-        mimeType = 'image/png';
-        break;
-      case 'gif':
-        convertedBuffer = await sharpInstance.gif().toBuffer();
-        mimeType = 'image/gif';
-        break;
-      case 'svg':
-        // Note: Sharp cannot convert raster to SVG. If the input is SVG, it can be processed.
-        // For simplicity, we are assuming we don't do raster-to-svg, as it's complex.
-        // If the user wants to "convert" an SVG to SVG, we just return it.
-        if (file.type === 'image/svg+xml') {
-            convertedBuffer = fileBuffer;
-            mimeType = 'image/svg+xml';
-        } else {
-            return { error: 'Raster to SVG conversion is not supported.' };
-        }
-        break;
-      default:
-         // Fallback for other formats sharp supports.
-         convertedBuffer = await sharpInstance.toFormat(format as keyof sharp.FormatEnum).toBuffer();
-         mimeType = `image/${format}`;
-         break;
+    if (width || height) {
+        sharpInstance.resize(width, height, { fit: keepAspectRatio ? 'inside' : 'fill' });
     }
+    
+    let convertedBuffer: Buffer;
+    const mimeType = `image/${format}`;
+
+    sharpInstance.toFormat(format as keyof sharp.FormatEnum, { quality });
+
+    convertedBuffer = await sharpInstance.toBuffer();
 
     const dataUrl = bufferToDataURL(convertedBuffer, mimeType);
-    return { dataUrl, originalName: file.name };
+    const originalName = file.name.substring(0, file.name.lastIndexOf('.'));
+    return { dataUrl, originalName: `${originalName}.${format}` };
 
   } catch (error) {
     console.error(error);
